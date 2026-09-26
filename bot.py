@@ -1401,6 +1401,16 @@ def main():
     port = int(os.environ.get("PORT", "8443"))
     external_url = os.environ.get("RENDER_EXTERNAL_URL")
 
+    # Newer Python versions (3.12+) no longer auto-create an event loop in the
+    # main thread, which crashes python-telegram-bot's run_webhook(). Creating
+    # one explicitly here makes this work on any Python version Render picks.
+    import asyncio
+
+    try:
+        asyncio.get_event_loop()
+    except RuntimeError:
+        asyncio.set_event_loop(asyncio.new_event_loop())
+
     if external_url:
         # Webhook mode - required for Render Web Service (free plan)
         application.run_webhook(
