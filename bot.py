@@ -399,9 +399,12 @@ async def show_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def start_deposit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     min_dep = db.get_setting("min_deposit")
+    payment_info = db.get_setting("payment_info")
     context.user_data["flow"] = {"type": "deposit_amount"}
     await update.message.reply_text(
-        f"💳 *Deposit*\n\nMinimum Deposit: ৳{min_dep}\n\nAmount লিখুন (৳):",
+        f"💳 *Deposit*\n\nমিনিমাম Deposit: ৳{min_dep}\n\n"
+        f"💰 *নিচের নম্বরে টাকা পাঠান:*\n{payment_info}\n\n"
+        f"টাকা পাঠানোর পর Amount লিখুন (৳):",
         parse_mode="Markdown",
         reply_markup=cancel_keyboard(),
     )
@@ -1082,12 +1085,14 @@ async def admin_settings_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kb = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("✏️ Min Deposit", callback_data="adm:set:min_deposit")],
+            [InlineKeyboardButton("✏️ Payment Info (bKash/Nagad)", callback_data="adm:set:payment_info")],
             [InlineKeyboardButton("✏️ Referral Bonus", callback_data="adm:set:referral_bonus")],
             [InlineKeyboardButton("✏️ Support Link", callback_data="adm:set:support_link")],
         ]
     )
     await query.message.reply_text(
         f"⚙️ *Bot Settings*\n\nMin Deposit: ৳{db.get_setting('min_deposit')}\n"
+        f"Payment Info:\n{db.get_setting('payment_info')}\n\n"
         f"Referral Bonus: ৳{db.get_setting('referral_bonus')}\n"
         f"Support Link: {db.get_setting('support_link')}",
         parse_mode="Markdown",

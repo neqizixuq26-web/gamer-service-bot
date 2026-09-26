@@ -114,6 +114,7 @@ def init_db():
         "channel_link": os.environ.get("CHANNEL_LINK", "https://t.me/yourchannel"),
         "support_link": os.environ.get("SUPPORT_LINK", "https://t.me/yoursupport"),
         "details_text": "এখানে Bot ব্যবহারের নিয়ম, Payment Information ও গুরুত্বপূর্ণ নির্দেশনা থাকবে।\n\nAdmin Panel থেকে এই লেখা পরিবর্তন করা যাবে।",
+        "payment_info": "bKash (Personal): 01XXXXXXXXX\nNagad (Personal): 01XXXXXXXXX\n\n(Admin Panel থেকে এই নম্বর পরিবর্তন করুন)",
     }
     for k, v in defaults.items():
         c.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", (k, v))
