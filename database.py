@@ -69,6 +69,7 @@ def init_db():
             service_name TEXT,
             qty INTEGER,
             details TEXT,
+            amount REAL DEFAULT 0,
             status TEXT DEFAULT 'Pending',
             created_at INTEGER
         );
@@ -107,14 +108,23 @@ def init_db():
         );
         """
     )
+    # Safe migration: add the `amount` column to sell_requests if this DB
+    # was created before this column existed (CREATE TABLE IF NOT EXISTS
+    # above does not alter an already-existing table).
+    try:
+        c.execute("ALTER TABLE sell_requests ADD COLUMN amount REAL DEFAULT 0")
+        conn.commit()
+    except Exception:
+        pass
+
     defaults = {
         "min_deposit": "50",
         "referral_bonus": "2",
+        "bkash_number": os.environ.get("BKASH_NUMBER", "01XXXXXXXXX (Personal)"),
         "channel_username": os.environ.get("CHANNEL_USERNAME", "@yourchannel"),
         "channel_link": os.environ.get("CHANNEL_LINK", "https://t.me/yourchannel"),
         "support_link": os.environ.get("SUPPORT_LINK", "https://t.me/yoursupport"),
         "details_text": "এখানে Bot ব্যবহারের নিয়ম, Payment Information ও গুরুত্বপূর্ণ নির্দেশনা থাকবে।\n\nAdmin Panel থেকে এই লেখা পরিবর্তন করা যাবে।",
-        "payment_info": "bKash (Personal): 01XXXXXXXXX\nNagad (Personal): 01XXXXXXXXX\n\n(Admin Panel থেকে এই নম্বর পরিবর্তন করুন)",
     }
     for k, v in defaults.items():
         c.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", (k, v))
@@ -358,12 +368,12 @@ def get_orders_by_status(status="Pending", limit=20):
 
 
 # ---------- sell requests ----------
-def create_sell_request(user_id, service_id, service_name, qty, details):
+def create_sell_request(user_id, service_id, service_name, qty, details, amount=0):
     conn = get_conn()
     cur = conn.execute(
-        "INSERT INTO sell_requests (user_id, service_id, service_name, qty, details, created_at) "
-        "VALUES (?, ?, ?, ?, ?, ?)",
-        (user_id, service_id, service_name, qty, details, int(time.time())),
+        "INSERT INTO sell_requests (user_id, service_id, service_name, qty, details, amount, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (user_id, service_id, service_name, qty, details, amount, int(time.time())),
     )
     conn.commit()
     conn.close()
